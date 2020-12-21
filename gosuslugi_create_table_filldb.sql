@@ -3,8 +3,8 @@
 
 -- База данных "Госуслуги" хранит:
 -- данные пользователей (учетная запись и профиль), 
--- информационные сообщения, которые получают пользователи от систем, подключенных к сервису, например: Почта России, ГИБДД, непосредственно сам портал "Госуслуги",
--- каталог услуг, которые может запросить пользователь, с указанием ответственного ведомства, сроков исполнение и стоимости услуги,
+-- информационные сообщения, которые получают пользователи от систем, подключенных к сервису, например, от: Почты России, ГИБДД, непосредственно самого портала "Госуслуги",
+-- каталог услуг, которые может запросить пользователь, с указанием ответственного ведомства, сроков исполнения и стоимости услуги,
 -- услуги также поделены на категории ("паспорт", "транспорт", "работа"),
 -- для каждой категории услуг предусмотрены полезные статьи по данной тематике,
 -- у каждого пользователя есть определенный уровень учетной записи ("простая", "стандартная", "подтвержденная"),
@@ -12,6 +12,7 @@
 -- Также есть таблица, которая содержит список всех услуг, которые запросил пользователь,
 -- и таблица с оплатами услуг.
 
+DROP SCHEMA gosuslugi;
 
 CREATE SCHEMA gosuslugi;
 use gosuslugi;
@@ -61,29 +62,51 @@ DROP TABLE IF EXISTS `services`;
 CREATE TABLE `services` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
   `name` varchar(128) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Название услуги',
-  `price` decimal(10,2) DEFAULT NULL COMMENT 'Стоимость',
+  `price` decimal(7,2) DEFAULT NULL COMMENT 'Стоимость',
   `days` tinyint(3) unsigned DEFAULT NULL COMMENT 'Срок выполнения',
   `category_id` int(10) unsigned NOT NULL COMMENT 'Название категории',
-  `responsible` varchar(128) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Название ведомства',
+  `responsible_id` int(10) unsigned NOT NULL COMMENT 'Идентификатор ведомства',
   `is_online` tinyint(1) DEFAULT NULL COMMENT 'Может ли услуга быть полностью оказана online',
   PRIMARY KEY (`id`),
   KEY `services_category_id_fk` (`category_id`),
-  CONSTRAINT `services_category_id_fk` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
+  CONSTRAINT `services_category_id_fk` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  KEY `services_responsible_id_fk` (`responsible_id`),
+  CONSTRAINT `services_responsible_id_fk` FOREIGN KEY (`responsible_id`) REFERENCES `responsible` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Справочник услуг';
 
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (1, 'Замена паспорта РФ в связи с достижением возраста 20 или 45 лет', '200.00', 10, 1, 'Министерство внутренних дел Российской Федерации', 0);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (2, 'Загранпаспорт нового поколения гражданам от 18 лет', '3500.00', 90, 1, 'Министерство внутренних дел Российской Федерации', 0);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (3, 'Регистрация гражданина по месту жительства', '0.00', 3, 1, 'Министерство внутренних дел Российской Федерации', 1);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (4, 'Проверка автомобильных и дорожных штрафов', '0.00', 1, 2, 'База ГИБДД', 1);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (5, 'Замена водительского удостоверения при истечении срока его действия', '1400.00', 3, 2, 'Министерство внутренних дел Российской Федерации', 0);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (6, 'Регистрация нового транспортного средства, ранее не зарегистрированного в ГИБДД', '2310.00', 3, 2, 'Министерство внутренних дел Российской Федерации', 0);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (7, 'Постановка на учет в центре занятости', '0.00', 11, 3, 'Центр занятости населения', 1);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (8, 'Поиск работы и трудоустройство', '0.00', 1, 3, 'Портал \"Работа в России\"', 1);
-INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible`, `is_online`) VALUES (9, 'Получение пособия по безработице', '0.00', 11, 3, 'Центр занятости населения', 0);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (1, 'Замена паспорта РФ в связи с достижением возраста 20 или 45 лет', '200.00', 10, 1, 1, 0);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (2, 'Загранпаспорт нового поколения гражданам от 18 лет', '3500.00', 90, 1, 1, 0);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (3, 'Регистрация гражданина по месту жительства', '0.00', 3, 1, 1, 1);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (4, 'Проверка автомобильных и дорожных штрафов', '0.00', 1, 2, 2, 1);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (5, 'Замена водительского удостоверения при истечении срока его действия', '1400.00', 3, 2, 1, 0);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (6, 'Регистрация нового транспортного средства, ранее не зарегистрированного в ГИБДД', '2310.00', 3, 2, 1, 0);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (7, 'Постановка на учет в центре занятости', '0.00', 11, 3, 3, 1);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (8, 'Поиск работы и трудоустройство', '0.00', 1, 3, 4, 1);
+INSERT INTO `services` (`id`, `name`, `price`, `days`, `category_id`, `responsible_id`, `is_online`) VALUES (9, 'Получение пособия по безработице', '0.00', 11, 3, 3, 0);
 
 SELECT * FROM services;
 
--- внешние ключи находятся в файле gosuslugi_fk.sql
+#
+# TABLE STRUCTURE FOR: responsible 
+#
+
+
+DROP TABLE IF EXISTS `responsible`;
+
+CREATE TABLE `responsible` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
+  `name` varchar(128) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Название ведомства',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Ответственные ведомства';
+
+INSERT INTO `responsible` (`id`, `name`) VALUES (1, 'Министерство внутренних дел Российской Федерации');
+INSERT INTO `responsible` (`id`, `name`) VALUES (2, 'База ГИБДД');
+INSERT INTO `responsible` (`id`, `name`) VALUES (3, 'Центр занятости населения');
+INSERT INTO `responsible` (`id`, `name`) VALUES (4, 'Портал \"Работа в России\"');
+
+SELECT * FROM responsible;
+
+
 
 #
 # TABLE STRUCTURE FOR: access_levels_services
@@ -130,7 +153,7 @@ DROP TABLE IF EXISTS `articles`;
 CREATE TABLE `articles` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
   `category_id` int(10) unsigned NOT NULL COMMENT 'Название категории',
-  `subject` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Название статьи',
+  `subject` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Название статьи',
   `body` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Текст статьи',
   `created_at` datetime DEFAULT current_timestamp() COMMENT 'Время создания строки',
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Время обновления строки',
@@ -333,7 +356,7 @@ CREATE TABLE `emails` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
   `from` enum('Почта России','Портал "Госуслуги"','ГИБДД') COLLATE utf8_unicode_ci NOT NULL COMMENT 'Отправитель сообщения',
   `to_user_id` int(10) unsigned NOT NULL COMMENT 'Ссылка на получателя сообщения',
-  `subject` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Тема письма',
+  `subject` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Тема письма',
   `body` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Текст письма',
   `is_important` tinyint(1) DEFAULT NULL COMMENT 'Признак важности',
   `is_read` tinyint(1) DEFAULT NULL COMMENT 'Прочитано ли письмо',
@@ -461,6 +484,7 @@ CREATE TABLE `orders` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
   `user_id` int(10) unsigned NOT NULL COMMENT 'Ссылка на пользователя',
   `service_id` int(10) unsigned NOT NULL COMMENT 'Ссылка на запрашиваемую услугу',
+  `price` decimal(7,2) DEFAULT NULL COMMENT 'Стоимость',
   `status` enum('requested','confirmed','rejected') COLLATE utf8_unicode_ci NOT NULL COMMENT 'Статус выполнения услуги',
   `created_at` datetime DEFAULT current_timestamp() COMMENT 'Время создания строки',
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Время обновления строки',
@@ -471,206 +495,206 @@ CREATE TABLE `orders` (
   CONSTRAINT `orders_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=201 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Заявления пользователей на оказание услуг';
 
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (1, 1, 1, 'rejected', '2014-07-22 23:09:49', '2014-01-05 10:35:24');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (2, 2, 2, 'requested', '2017-05-05 16:59:50', '2018-02-14 05:25:40');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (3, 3, 3, 'rejected', '2012-11-17 03:40:47', '2014-03-14 11:04:03');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (4, 4, 4, 'rejected', '2011-01-20 19:50:32', '2019-06-22 21:05:16');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (5, 5, 5, 'confirmed', '2017-03-22 12:27:53', '2013-06-06 19:46:19');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (6, 6, 6, 'requested', '2012-07-22 03:30:15', '2013-02-20 08:29:32');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (7, 7, 7, 'confirmed', '2019-05-30 04:21:04', '2020-09-28 02:24:32');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (8, 8, 8, 'requested', '2011-10-21 18:38:15', '2016-12-24 10:44:21');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (9, 9, 9, 'rejected', '2019-06-16 04:31:55', '2020-06-08 15:45:54');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (10, 10, 1, 'requested', '2019-06-17 15:13:53', '2012-10-04 22:05:37');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (11, 11, 2, 'rejected', '2012-08-14 02:48:16', '2016-12-15 01:09:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (12, 12, 3, 'requested', '2020-02-03 05:25:15', '2017-11-29 21:15:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (13, 13, 4, 'confirmed', '2016-04-06 22:36:09', '2015-03-15 15:20:37');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (14, 14, 5, 'confirmed', '2018-04-07 06:20:12', '2011-06-21 21:59:46');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (15, 15, 6, 'confirmed', '2014-02-24 04:01:12', '2013-03-18 19:06:26');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (16, 16, 7, 'requested', '2016-04-13 19:40:04', '2017-05-05 03:12:35');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (17, 17, 8, 'rejected', '2013-03-20 00:20:23', '2012-08-20 12:49:04');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (18, 18, 9, 'requested', '2017-03-31 02:23:14', '2017-03-03 09:04:41');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (19, 19, 1, 'rejected', '2014-08-26 21:16:39', '2011-02-03 10:50:19');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (20, 20, 2, 'rejected', '2020-04-17 00:23:05', '2017-11-28 12:48:11');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (21, 21, 3, 'rejected', '2020-05-02 21:08:25', '2020-01-04 21:50:55');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (22, 22, 4, 'requested', '2013-07-10 16:45:57', '2015-03-09 07:48:22');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (23, 23, 5, 'rejected', '2019-11-24 17:52:43', '2011-07-05 20:59:14');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (24, 24, 6, 'confirmed', '2013-03-17 22:10:14', '2012-10-26 14:08:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (25, 25, 7, 'requested', '2018-01-04 16:14:00', '2013-08-29 06:47:53');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (26, 26, 8, 'confirmed', '2011-09-02 14:20:19', '2018-05-05 14:18:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (27, 27, 9, 'rejected', '2019-06-16 13:47:10', '2018-09-15 18:57:48');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (28, 28, 1, 'requested', '2020-07-20 09:00:39', '2016-06-06 05:18:32');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (29, 29, 2, 'rejected', '2020-07-14 05:40:38', '2012-07-28 08:25:43');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (30, 30, 3, 'confirmed', '2012-08-26 23:09:21', '2019-12-13 19:54:48');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (31, 31, 4, 'requested', '2017-06-14 22:53:32', '2017-09-24 07:09:03');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (32, 32, 5, 'confirmed', '2016-02-18 20:39:05', '2013-02-04 14:11:08');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (33, 33, 6, 'confirmed', '2014-11-19 14:26:34', '2011-08-21 22:57:44');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (34, 34, 7, 'requested', '2013-02-18 19:14:45', '2019-11-27 15:58:07');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (35, 35, 8, 'confirmed', '2011-03-18 15:46:20', '2020-02-17 17:25:55');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (36, 36, 9, 'confirmed', '2020-05-14 06:17:51', '2014-04-17 11:20:31');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (37, 37, 1, 'requested', '2020-07-11 01:52:49', '2013-03-18 23:36:41');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (38, 38, 2, 'rejected', '2017-06-30 07:33:33', '2018-05-16 15:22:37');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (39, 39, 3, 'confirmed', '2012-07-27 03:55:49', '2015-10-29 04:19:39');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (40, 40, 4, 'rejected', '2020-01-09 08:57:25', '2013-01-30 23:45:10');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (41, 41, 5, 'requested', '2015-10-12 18:17:01', '2020-05-24 11:24:29');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (42, 42, 6, 'confirmed', '2014-01-04 00:17:40', '2011-01-21 13:48:57');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (43, 43, 7, 'requested', '2014-10-17 05:41:00', '2011-08-07 08:42:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (44, 44, 8, 'confirmed', '2015-03-08 19:55:09', '2015-10-07 20:47:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (45, 45, 9, 'confirmed', '2014-10-18 21:44:52', '2013-08-25 23:10:27');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (46, 46, 1, 'confirmed', '2016-06-20 13:19:16', '2019-11-30 22:14:40');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (47, 47, 2, 'requested', '2016-02-05 20:39:21', '2011-03-14 08:52:26');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (48, 48, 3, 'rejected', '2019-03-05 03:13:04', '2017-06-13 23:02:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (49, 49, 4, 'requested', '2019-05-18 16:37:39', '2016-08-18 12:58:50');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (50, 50, 5, 'requested', '2014-05-24 23:58:48', '2017-04-16 05:24:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (51, 51, 6, 'rejected', '2013-06-19 11:46:20', '2018-12-02 14:52:30');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (52, 52, 7, 'rejected', '2019-09-21 02:34:25', '2016-11-02 16:26:30');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (53, 53, 8, 'requested', '2018-01-25 01:05:46', '2012-02-21 09:36:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (54, 54, 9, 'rejected', '2014-09-21 13:42:03', '2015-09-07 17:25:00');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (55, 55, 1, 'requested', '2020-05-11 03:47:27', '2019-05-21 20:42:59');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (56, 56, 2, 'confirmed', '2011-02-09 01:10:39', '2014-03-18 16:05:00');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (57, 57, 3, 'confirmed', '2017-05-23 08:07:27', '2017-12-16 13:13:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (58, 58, 4, 'requested', '2020-07-23 13:59:18', '2020-02-25 11:30:26');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (59, 59, 5, 'confirmed', '2011-09-13 01:30:20', '2019-08-18 01:15:16');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (60, 60, 6, 'confirmed', '2016-04-24 00:26:47', '2017-04-07 08:01:03');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (61, 61, 7, 'confirmed', '2016-07-01 23:18:08', '2015-02-28 14:21:38');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (62, 62, 8, 'rejected', '2011-12-23 15:37:49', '2011-06-06 13:47:50');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (63, 63, 9, 'rejected', '2014-06-19 22:09:27', '2015-12-16 05:55:40');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (64, 64, 1, 'confirmed', '2013-06-14 13:40:25', '2011-04-25 10:13:55');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (65, 65, 2, 'requested', '2017-04-23 04:49:25', '2016-01-24 02:47:46');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (66, 66, 3, 'confirmed', '2018-08-09 21:15:30', '2020-10-24 16:58:21');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (67, 67, 4, 'requested', '2012-05-19 04:21:58', '2013-07-25 16:29:54');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (68, 68, 5, 'rejected', '2013-07-10 21:10:32', '2016-06-01 01:51:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (69, 69, 6, 'requested', '2014-01-27 15:17:18', '2018-10-11 00:16:26');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (70, 70, 7, 'requested', '2016-01-09 21:07:11', '2016-09-25 12:13:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (71, 71, 8, 'confirmed', '2018-07-27 01:54:54', '2016-03-09 22:54:34');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (72, 72, 9, 'confirmed', '2016-02-14 05:01:45', '2017-12-19 10:59:55');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (73, 73, 1, 'confirmed', '2013-02-14 05:19:04', '2016-05-03 02:23:27');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (74, 74, 2, 'confirmed', '2012-09-02 21:22:32', '2017-04-09 17:52:36');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (75, 75, 3, 'confirmed', '2020-05-24 10:27:30', '2014-05-01 12:32:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (76, 76, 4, 'requested', '2013-08-05 07:51:45', '2018-10-26 15:35:50');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (77, 77, 5, 'requested', '2020-04-27 11:22:18', '2014-02-13 01:57:19');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (78, 78, 6, 'rejected', '2013-07-25 09:42:18', '2018-04-01 10:42:13');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (79, 79, 7, 'requested', '2015-06-12 16:53:00', '2016-11-22 12:07:27');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (80, 80, 8, 'requested', '2016-01-17 20:00:45', '2019-11-16 13:42:44');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (81, 81, 9, 'confirmed', '2013-12-11 03:56:19', '2016-11-02 03:46:44');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (82, 82, 1, 'confirmed', '2019-04-06 13:57:38', '2011-09-15 19:26:52');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (83, 83, 2, 'rejected', '2015-05-15 20:19:00', '2014-03-28 17:27:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (84, 84, 3, 'rejected', '2016-10-02 09:51:05', '2018-08-13 15:43:43');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (85, 85, 4, 'confirmed', '2017-08-23 03:13:32', '2019-05-10 05:49:08');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (86, 86, 5, 'confirmed', '2019-11-13 20:10:53', '2018-05-25 20:29:19');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (87, 87, 6, 'rejected', '2012-04-14 07:43:08', '2014-01-29 02:56:11');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (88, 88, 7, 'confirmed', '2017-04-19 17:54:15', '2013-06-17 15:49:43');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (89, 89, 8, 'confirmed', '2019-04-09 10:36:36', '2017-09-27 21:45:46');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (90, 90, 9, 'confirmed', '2020-01-02 00:49:50', '2011-03-17 19:15:24');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (91, 91, 1, 'requested', '2015-07-20 01:13:38', '2014-01-24 22:39:49');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (92, 92, 2, 'requested', '2020-11-29 00:11:57', '2011-05-21 10:14:16');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (93, 93, 3, 'requested', '2016-06-21 14:00:08', '2019-10-13 15:42:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (94, 94, 4, 'rejected', '2016-12-09 14:50:54', '2011-01-18 06:42:10');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (95, 95, 5, 'confirmed', '2014-07-10 17:57:53', '2018-01-14 09:02:40');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (96, 96, 6, 'requested', '2013-02-13 23:20:34', '2012-06-01 15:32:55');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (97, 97, 7, 'confirmed', '2012-04-04 00:26:14', '2012-10-23 22:02:53');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (98, 98, 8, 'confirmed', '2019-02-24 19:11:56', '2018-01-06 08:30:38');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (99, 99, 9, 'requested', '2015-07-12 10:21:00', '2019-08-15 19:29:45');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (100, 100, 1, 'requested', '2016-07-25 19:51:56', '2012-12-02 16:20:07');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (101, 1, 2, 'requested', '2013-08-28 11:37:37', '2018-07-25 07:07:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (102, 2, 3, 'confirmed', '2020-05-28 20:35:06', '2015-08-28 06:32:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (103, 3, 4, 'requested', '2014-10-26 20:23:07', '2019-05-20 02:59:42');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (104, 4, 5, 'confirmed', '2011-01-05 15:14:38', '2018-06-11 14:48:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (105, 5, 6, 'rejected', '2019-04-30 14:35:34', '2015-10-22 07:59:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (106, 6, 7, 'rejected', '2015-02-16 10:50:17', '2017-07-12 01:23:31');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (107, 7, 8, 'confirmed', '2011-02-15 10:52:53', '2018-01-18 01:41:27');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (108, 8, 9, 'rejected', '2020-09-23 00:11:25', '2019-07-02 16:25:29');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (109, 9, 1, 'confirmed', '2014-01-17 13:49:07', '2018-10-06 02:28:51');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (110, 10, 2, 'rejected', '2018-01-04 15:20:07', '2017-11-14 06:58:51');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (111, 11, 3, 'rejected', '2016-04-29 09:50:04', '2018-08-01 01:14:43');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (112, 12, 4, 'rejected', '2010-12-07 09:46:01', '2013-10-02 11:38:54');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (113, 13, 5, 'requested', '2014-06-03 03:45:21', '2015-10-06 18:09:27');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (114, 14, 6, 'requested', '2016-08-17 07:44:01', '2012-01-23 23:01:05');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (115, 15, 7, 'rejected', '2019-09-25 22:18:26', '2014-05-20 05:59:44');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (116, 16, 8, 'confirmed', '2019-08-09 15:57:59', '2011-10-14 23:48:45');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (117, 17, 9, 'confirmed', '2019-10-16 05:52:04', '2013-08-13 22:22:45');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (118, 18, 1, 'rejected', '2020-08-14 20:11:31', '2015-09-01 20:25:49');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (119, 19, 2, 'requested', '2017-09-10 02:49:57', '2020-04-04 14:19:22');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (120, 20, 3, 'rejected', '2014-07-09 21:37:33', '2015-01-13 06:39:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (121, 21, 4, 'rejected', '2017-06-15 12:37:45', '2020-02-22 14:17:31');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (122, 22, 5, 'requested', '2012-08-20 00:47:19', '2011-01-22 14:58:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (123, 23, 6, 'confirmed', '2017-08-28 05:37:52', '2020-09-02 06:11:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (124, 24, 7, 'requested', '2013-06-05 16:47:44', '2017-01-11 01:41:37');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (125, 25, 8, 'rejected', '2014-08-22 06:07:14', '2018-01-09 14:49:36');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (126, 26, 9, 'confirmed', '2014-03-02 03:50:55', '2011-11-30 22:02:38');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (127, 27, 1, 'confirmed', '2017-12-23 21:41:56', '2019-07-31 13:41:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (128, 28, 2, 'rejected', '2016-02-10 08:42:38', '2011-11-12 12:02:49');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (129, 29, 3, 'requested', '2011-02-18 09:32:12', '2012-01-22 07:03:04');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (130, 30, 4, 'requested', '2016-11-06 00:15:33', '2011-03-16 21:55:40');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (131, 31, 5, 'requested', '2011-07-16 19:12:08', '2013-09-16 23:49:31');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (132, 32, 6, 'requested', '2018-04-07 17:19:08', '2017-07-10 21:49:12');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (133, 33, 7, 'rejected', '2011-12-16 06:33:40', '2016-06-21 23:42:34');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (134, 34, 8, 'requested', '2012-05-23 16:25:01', '2013-06-27 03:54:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (135, 35, 9, 'requested', '2017-08-18 20:13:57', '2019-01-11 02:37:35');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (136, 36, 1, 'confirmed', '2013-10-24 18:21:01', '2013-02-07 00:25:07');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (137, 37, 2, 'requested', '2013-11-09 15:16:39', '2016-09-24 03:20:59');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (138, 38, 3, 'rejected', '2014-08-06 19:59:03', '2016-09-27 18:56:12');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (139, 39, 4, 'confirmed', '2016-01-24 22:12:10', '2018-01-21 15:36:57');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (140, 40, 5, 'confirmed', '2016-06-02 14:22:41', '2020-07-24 15:06:48');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (141, 41, 6, 'rejected', '2020-06-22 13:22:18', '2018-04-18 16:57:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (142, 42, 7, 'confirmed', '2016-11-22 18:49:10', '2018-10-09 23:13:34');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (143, 43, 8, 'rejected', '2011-12-30 16:06:17', '2012-11-09 00:51:28');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (144, 44, 9, 'requested', '2015-07-13 10:45:37', '2013-04-23 02:14:45');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (145, 45, 1, 'requested', '2016-06-11 06:10:17', '2015-03-28 07:10:19');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (146, 46, 2, 'rejected', '2020-07-31 21:19:47', '2015-06-11 05:53:12');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (147, 47, 3, 'requested', '2011-10-31 17:07:24', '2020-08-01 09:45:08');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (148, 48, 4, 'requested', '2018-06-03 10:16:51', '2013-02-04 04:51:32');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (149, 49, 5, 'rejected', '2017-05-07 08:14:21', '2012-08-29 01:16:38');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (150, 50, 6, 'rejected', '2012-04-15 10:18:05', '2014-07-18 04:26:35');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (151, 51, 7, 'confirmed', '2015-06-16 03:46:17', '2017-08-11 08:28:41');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (152, 52, 8, 'requested', '2011-02-20 05:05:10', '2014-06-10 12:31:08');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (153, 53, 9, 'requested', '2011-08-08 01:02:11', '2017-11-14 08:13:36');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (154, 54, 1, 'rejected', '2018-06-05 02:55:53', '2018-10-30 20:01:51');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (155, 55, 2, 'requested', '2013-03-10 09:01:58', '2019-12-22 20:39:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (156, 56, 3, 'rejected', '2017-05-23 15:45:44', '2020-03-29 07:34:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (157, 57, 4, 'requested', '2012-04-27 22:12:55', '2014-10-28 20:19:52');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (158, 58, 5, 'rejected', '2017-04-07 16:11:46', '2020-08-28 12:29:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (159, 59, 6, 'confirmed', '2013-04-09 06:57:20', '2020-02-03 21:40:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (160, 60, 7, 'confirmed', '2018-10-22 23:10:48', '2013-08-05 15:27:21');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (161, 61, 8, 'rejected', '2012-07-08 22:35:55', '2017-12-19 08:57:59');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (162, 62, 9, 'rejected', '2012-05-10 18:30:56', '2017-10-18 16:57:13');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (163, 63, 1, 'rejected', '2013-04-25 15:33:26', '2019-08-08 15:38:12');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (164, 64, 2, 'confirmed', '2014-09-03 11:56:31', '2016-05-16 01:02:32');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (165, 65, 3, 'confirmed', '2017-12-03 19:17:32', '2013-09-24 19:11:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (166, 66, 4, 'requested', '2016-10-20 13:56:29', '2018-02-11 00:44:43');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (167, 67, 5, 'confirmed', '2014-03-14 12:08:27', '2016-10-08 15:24:09');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (168, 68, 6, 'rejected', '2014-04-23 12:31:23', '2017-02-17 17:47:24');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (169, 69, 7, 'confirmed', '2019-02-02 02:44:26', '2011-02-13 17:32:13');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (170, 70, 8, 'rejected', '2013-09-08 19:47:18', '2013-02-12 05:44:54');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (171, 71, 9, 'rejected', '2017-09-13 02:56:59', '2015-07-08 12:37:25');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (172, 72, 1, 'confirmed', '2011-08-31 07:53:18', '2018-10-18 08:10:21');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (173, 73, 2, 'confirmed', '2018-02-27 14:04:12', '2015-04-08 02:18:41');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (174, 74, 3, 'confirmed', '2012-08-01 20:15:37', '2017-09-30 06:20:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (175, 75, 4, 'requested', '2012-07-23 19:32:34', '2011-01-24 08:52:26');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (176, 76, 5, 'rejected', '2014-12-15 18:23:12', '2017-10-26 12:06:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (177, 77, 6, 'confirmed', '2012-03-30 04:28:00', '2020-06-10 06:43:00');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (178, 78, 7, 'confirmed', '2011-04-09 15:18:21', '2016-01-21 10:50:52');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (179, 79, 8, 'rejected', '2018-11-16 11:46:22', '2015-04-18 04:06:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (180, 80, 9, 'rejected', '2018-10-26 03:28:11', '2016-08-24 06:47:05');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (181, 81, 1, 'rejected', '2016-09-11 17:06:34', '2018-09-17 05:41:14');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (182, 82, 2, 'confirmed', '2012-12-17 04:02:32', '2018-01-12 13:07:05');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (183, 83, 3, 'confirmed', '2012-12-06 23:28:51', '2011-10-07 23:23:04');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (184, 84, 4, 'requested', '2016-05-27 11:22:54', '2013-07-09 03:45:50');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (185, 85, 5, 'requested', '2015-12-19 07:19:34', '2015-03-23 23:57:11');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (186, 86, 6, 'confirmed', '2018-06-19 07:08:40', '2019-01-23 00:06:25');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (187, 87, 7, 'confirmed', '2017-12-02 23:09:49', '2015-06-14 01:39:18');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (188, 88, 8, 'confirmed', '2012-12-16 18:14:32', '2020-01-28 17:42:33');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (189, 89, 9, 'confirmed', '2017-09-28 10:32:32', '2016-11-24 12:50:02');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (190, 90, 1, 'requested', '2011-01-21 04:57:48', '2012-01-27 00:37:54');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (191, 91, 2, 'requested', '2019-07-19 17:29:34', '2018-12-24 10:01:20');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (192, 92, 3, 'rejected', '2013-11-07 17:10:46', '2019-02-10 06:18:58');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (193, 93, 4, 'confirmed', '2012-01-25 03:59:38', '2020-04-04 08:20:41');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (194, 94, 5, 'rejected', '2015-08-30 17:10:12', '2018-06-25 16:55:04');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (195, 95, 6, 'confirmed', '2013-07-15 16:17:12', '2012-06-07 04:31:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (196, 96, 7, 'requested', '2017-12-03 20:28:17', '2014-06-09 19:24:56');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (197, 97, 8, 'rejected', '2018-02-12 23:44:46', '2018-12-18 08:13:30');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (198, 98, 9, 'confirmed', '2014-07-27 01:44:06', '2015-12-17 04:39:01');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (199, 99, 1, 'confirmed', '2015-02-11 16:16:41', '2018-12-10 16:10:03');
-INSERT INTO `orders` (`id`, `user_id`, `service_id`, `status`, `created_at`, `updated_at`) VALUES (200, 100, 2, 'requested', '2015-10-11 23:05:41', '2020-03-04 07:55:10');
+INSERT INTO `orders` VALUES ('1','31','7','6729.10','rejected','2014-05-18 06:02:40','2016-11-11 07:50:09'),
+('2','54','2','25197.21','requested','2014-03-28 06:27:10','2018-02-16 11:47:27'),
+('3','100','2','99999.99','confirmed','2014-07-16 20:39:12','2015-08-29 11:31:24'),
+('4','63','7','0.00','requested','2012-05-27 22:45:33','2011-08-03 21:53:43'),
+('5','33','3','99999.99','requested','2019-12-09 03:33:37','2020-04-27 11:48:25'),
+('6','24','2','233.47','requested','2014-05-21 22:01:55','2019-09-15 12:45:13'),
+('7','80','7','628.32','confirmed','2018-01-10 17:00:08','2012-12-12 01:31:12'),
+('8','29','4','99999.99','requested','2019-01-06 00:02:55','2017-07-10 10:51:23'),
+('9','19','6','25021.48','rejected','2020-09-02 06:52:36','2011-04-28 04:37:21'),
+('10','100','9','99999.99','requested','2020-09-25 14:08:21','2016-07-14 00:45:41'),
+('11','62','4','51.59','requested','2011-03-01 22:03:55','2011-05-15 02:22:13'),
+('12','66','8','2.16','confirmed','2012-07-30 01:51:53','2017-10-11 12:58:44'),
+('13','48','5','0.00','rejected','2014-02-18 19:11:22','2019-12-24 15:47:04'),
+('14','72','3','0.00','requested','2014-12-29 01:29:24','2016-02-06 20:12:34'),
+('15','64','4','7551.00','confirmed','2012-12-06 09:36:17','2013-09-02 23:03:17'),
+('16','47','2','99999.99','requested','2017-06-30 10:58:21','2018-03-10 04:26:54'),
+('17','39','1','3059.20','rejected','2020-04-22 12:33:46','2014-05-28 22:48:22'),
+('18','2','6','1.80','confirmed','2018-06-20 10:34:22','2017-01-21 23:51:44'),
+('19','40','1','99999.99','rejected','2015-05-26 07:47:35','2015-11-11 23:00:53'),
+('20','76','2','24.49','requested','2018-03-08 10:06:30','2011-10-20 23:05:41'),
+('21','50','3','0.00','requested','2018-02-09 02:19:19','2020-10-08 08:19:22'),
+('22','54','5','99999.99','requested','2011-02-21 05:56:11','2013-08-31 10:23:42'),
+('23','44','9','99999.99','requested','2014-01-29 02:49:24','2015-12-20 05:38:21'),
+('24','82','2','99999.99','confirmed','2015-04-23 05:11:39','2015-02-20 06:40:31'),
+('25','61','7','3.72','confirmed','2012-04-05 09:47:29','2020-10-02 23:13:56'),
+('26','46','5','99999.99','requested','2012-04-22 21:28:43','2020-05-08 23:29:16'),
+('27','98','4','99999.99','rejected','2020-01-26 00:53:47','2011-12-25 12:23:27'),
+('28','85','4','7.00','rejected','2019-12-14 19:38:44','2010-12-29 03:40:23'),
+('29','4','3','3.14','rejected','2018-10-15 02:17:22','2020-12-04 10:31:23'),
+('30','35','4','12.18','confirmed','2012-09-14 12:41:34','2019-03-31 00:01:14'),
+('31','24','8','15.60','rejected','2016-06-16 00:05:40','2017-10-11 22:03:53'),
+('32','72','7','0.00','rejected','2012-04-20 16:18:24','2013-04-04 21:28:07'),
+('33','20','2','0.00','requested','2012-08-06 00:42:15','2018-08-07 00:53:59'),
+('34','27','5','3648.34','requested','2011-03-03 16:49:26','2014-08-14 04:06:21'),
+('35','68','2','99999.99','confirmed','2020-09-05 21:14:15','2019-01-24 23:36:30'),
+('36','57','1','99999.99','requested','2014-04-13 18:37:00','2018-03-13 16:31:32'),
+('37','96','8','35014.98','rejected','2019-02-11 09:39:46','2014-03-26 16:05:08'),
+('38','100','3','1.08','confirmed','2015-01-27 18:37:45','2013-01-27 12:06:00'),
+('39','48','1','0.00','confirmed','2016-03-04 00:46:58','2020-03-13 21:22:59'),
+('40','23','8','286.52','requested','2014-08-12 17:35:37','2011-03-31 07:15:30'),
+('41','57','9','23.33','rejected','2018-10-15 03:01:12','2014-11-01 18:50:46'),
+('42','25','9','0.00','confirmed','2015-05-02 00:54:42','2018-03-11 08:57:50'),
+('43','5','2','0.00','requested','2018-12-18 23:45:33','2017-08-21 07:18:56'),
+('44','86','9','51885.91','confirmed','2017-08-07 13:26:05','2014-09-27 16:47:15'),
+('45','21','7','0.00','rejected','2019-07-05 16:25:37','2020-10-05 20:00:42'),
+('46','16','6','99999.99','requested','2018-04-05 14:38:57','2014-11-19 17:07:10'),
+('47','92','6','99999.99','requested','2012-01-17 22:46:28','2011-11-01 01:19:56'),
+('48','69','3','0.69','requested','2019-03-13 18:12:53','2019-02-20 17:19:01'),
+('49','22','6','4291.08','rejected','2013-02-04 00:54:00','2015-08-22 04:42:32'),
+('50','84','2','99999.99','requested','2020-03-20 03:35:47','2015-06-02 07:42:16'),
+('51','73','7','99999.99','confirmed','2019-11-13 11:04:21','2013-02-28 01:57:15'),
+('52','3','4','0.14','rejected','2015-02-14 22:12:09','2012-10-11 18:03:36'),
+('53','23','2','13891.47','confirmed','2012-03-15 20:41:30','2013-01-31 19:32:44'),
+('54','81','5','99999.99','requested','2014-12-02 10:01:30','2019-03-17 08:09:52'),
+('55','93','4','93764.01','confirmed','2014-08-23 12:55:45','2013-03-30 06:23:45'),
+('56','76','8','99999.99','requested','2013-11-25 11:54:17','2011-05-26 08:25:04'),
+('57','27','8','99999.99','requested','2012-05-22 22:22:13','2016-01-03 00:59:24'),
+('58','69','5','0.00','rejected','2017-02-21 20:01:30','2015-06-08 08:43:18'),
+('59','8','5','99999.99','confirmed','2015-05-28 15:51:20','2012-04-29 09:08:32'),
+('60','24','8','6.24','rejected','2011-06-10 03:25:46','2014-12-19 20:13:52'),
+('61','46','4','0.00','rejected','2020-10-25 10:57:36','2020-07-14 23:36:54'),
+('62','11','9','512.29','rejected','2011-02-08 17:11:07','2014-06-18 06:30:00'),
+('63','58','3','156.18','confirmed','2012-01-08 06:05:29','2012-12-31 09:28:52'),
+('64','98','9','61933.68','rejected','2016-05-21 21:42:49','2020-05-20 01:23:08'),
+('65','80','7','46.60','rejected','2013-11-28 07:14:24','2020-05-04 04:43:04'),
+('66','56','2','99999.99','rejected','2016-04-23 19:46:58','2017-10-01 13:55:16'),
+('67','29','3','99999.99','confirmed','2019-05-09 15:34:29','2011-05-30 07:43:27'),
+('68','57','2','99999.99','rejected','2013-05-01 03:21:17','2019-09-28 16:21:06'),
+('69','78','2','53121.40','requested','2011-03-19 19:59:47','2016-02-09 04:56:00'),
+('70','63','2','99999.99','rejected','2020-07-02 22:57:24','2017-01-17 15:56:20'),
+('71','6','8','15769.16','confirmed','2014-06-09 09:45:56','2020-04-26 03:21:57'),
+('72','25','6','5.53','rejected','2013-08-02 21:04:25','2015-06-16 11:23:34'),
+('73','33','3','0.73','requested','2011-02-20 01:56:42','2020-10-31 01:57:06'),
+('74','60','7','1401.84','rejected','2018-09-07 00:00:42','2018-04-23 13:05:14'),
+('75','33','8','494.07','requested','2020-06-16 22:47:42','2017-08-30 19:33:00'),
+('76','95','7','99999.99','rejected','2019-10-28 14:12:07','2015-07-20 17:41:00'),
+('77','83','9','99999.99','requested','2014-04-21 09:50:49','2011-09-02 03:55:03'),
+('78','17','8','99999.99','requested','2012-05-14 20:01:20','2015-08-10 19:55:59'),
+('79','67','6','2.20','confirmed','2012-10-07 19:00:30','2018-08-20 15:28:27'),
+('80','93','4','99999.99','requested','2019-11-22 14:39:45','2013-08-11 17:24:33'),
+('81','82','8','14.10','requested','2014-07-10 08:58:07','2017-09-28 02:24:51'),
+('82','71','6','76.08','requested','2013-05-21 17:15:47','2019-07-08 11:08:32'),
+('83','35','9','49.07','requested','2014-02-25 16:58:05','2017-09-21 06:56:43'),
+('84','78','2','163.20','rejected','2019-06-11 21:52:17','2017-05-19 02:12:20'),
+('85','41','1','212.57','requested','2019-05-09 14:20:50','2017-09-30 23:53:53'),
+('86','37','5','99999.99','rejected','2013-04-24 09:21:06','2017-04-12 13:22:13'),
+('87','43','8','1409.85','rejected','2018-12-31 01:59:04','2019-06-17 13:24:11'),
+('88','57','9','2.00','requested','2017-02-22 11:38:04','2011-03-20 11:23:25'),
+('89','40','6','21.00','confirmed','2012-05-21 17:29:17','2020-04-10 03:58:38'),
+('90','25','8','6239.40','rejected','2012-06-22 13:15:32','2014-05-20 08:20:51'),
+('91','54','8','33.07','rejected','2017-02-21 11:05:51','2011-12-24 23:52:18'),
+('92','11','7','99999.99','rejected','2017-02-17 17:42:13','2017-06-11 05:58:35'),
+('93','49','7','68.84','requested','2019-06-02 22:28:59','2016-09-30 14:23:30'),
+('94','58','1','0.00','requested','2011-07-28 03:08:38','2015-02-20 05:12:34'),
+('95','48','4','798.72','rejected','2019-08-11 17:42:44','2019-05-06 21:37:38'),
+('96','55','3','2.00','requested','2016-08-24 11:08:57','2011-12-18 11:58:00'),
+('97','19','3','62.44','requested','2020-12-01 04:00:53','2020-10-14 21:48:55'),
+('98','44','9','0.00','confirmed','2011-05-31 23:27:39','2015-02-03 12:32:58'),
+('99','28','3','99999.99','requested','2018-11-17 06:56:52','2019-01-26 17:18:25'),
+('100','45','8','99999.99','confirmed','2020-01-02 15:27:29','2015-11-02 21:18:07'),
+('101','45','8','0.00','rejected','2013-10-25 04:58:18','2011-01-24 11:03:15'),
+('102','34','9','2117.40','rejected','2017-09-19 20:17:23','2017-09-24 14:13:32'),
+('103','65','2','99999.99','confirmed','2018-12-12 13:25:27','2011-10-20 15:55:02'),
+('104','78','7','0.00','confirmed','2018-06-10 15:17:00','2011-03-10 19:11:18'),
+('105','3','9','99999.99','confirmed','2012-03-24 18:38:35','2014-09-04 09:17:08'),
+('106','49','3','349.37','requested','2012-11-15 22:32:48','2019-02-14 01:19:26'),
+('107','48','3','8410.84','rejected','2016-09-13 23:08:26','2012-04-25 13:32:11'),
+('108','73','6','13401.74','confirmed','2012-06-15 14:28:50','2015-01-15 22:39:36'),
+('109','42','4','97.17','confirmed','2020-03-06 05:48:58','2020-07-21 16:41:36'),
+('110','100','8','47027.68','requested','2017-04-08 00:32:17','2020-08-04 17:59:03'),
+('111','41','8','7.41','confirmed','2020-03-06 08:07:52','2013-11-12 23:23:39'),
+('112','24','5','0.00','confirmed','2020-08-09 01:05:32','2012-11-09 13:45:38'),
+('113','56','1','99999.99','rejected','2012-03-16 23:40:26','2015-09-29 18:15:13'),
+('114','4','6','99999.99','requested','2014-06-08 10:15:44','2017-07-22 12:19:39'),
+('115','70','4','99999.99','requested','2020-02-09 08:59:24','2018-10-27 01:48:49'),
+('116','44','3','769.83','rejected','2018-02-21 10:41:37','2013-05-15 13:17:48'),
+('117','4','1','99999.99','confirmed','2016-11-12 09:36:56','2012-06-20 08:54:09'),
+('118','91','8','57.49','requested','2011-10-25 00:54:13','2013-09-09 03:56:31'),
+('119','78','3','99999.99','requested','2011-05-06 06:20:54','2019-08-29 20:38:38'),
+('120','29','7','0.00','requested','2020-05-14 15:47:42','2014-09-25 02:13:12'),
+('121','48','4','99999.99','requested','2015-09-05 20:31:16','2018-11-23 08:25:32'),
+('122','51','3','12.67','confirmed','2017-01-09 02:39:02','2017-02-25 19:39:15'),
+('123','12','6','99999.99','requested','2013-12-16 10:36:43','2018-03-27 15:20:58'),
+('124','64','6','99999.99','requested','2017-11-12 18:56:18','2016-11-06 11:48:00'),
+('125','39','3','290.84','confirmed','2019-11-09 00:06:26','2017-03-25 19:43:13'),
+('126','12','1','99999.99','confirmed','2015-05-16 18:56:26','2014-08-02 10:40:34'),
+('127','84','4','46.00','confirmed','2013-04-14 14:22:00','2012-06-17 06:02:41'),
+('128','36','6','0.00','confirmed','2013-05-07 04:01:50','2016-01-10 09:16:31'),
+('129','56','2','1.29','rejected','2013-02-06 01:05:19','2013-10-13 04:52:58'),
+('130','42','5','217.30','confirmed','2017-03-31 02:44:40','2016-09-29 03:13:17'),
+('131','65','4','99999.99','rejected','2017-05-19 02:20:38','2014-12-27 21:57:14'),
+('132','74','9','0.40','confirmed','2011-06-07 06:04:36','2012-03-18 21:37:20'),
+('133','6','1','4.93','requested','2015-04-03 15:18:58','2013-09-27 15:04:11'),
+('134','36','8','0.00','rejected','2020-09-01 22:01:36','2013-11-12 20:13:32'),
+('135','59','6','99999.99','requested','2020-02-25 14:59:56','2014-03-29 09:51:26'),
+('136','41','9','1.00','rejected','2016-04-15 16:59:53','2012-06-14 05:59:04'),
+('137','29','7','236.70','requested','2011-01-25 02:32:16','2013-11-25 03:00:47'),
+('138','93','4','99999.99','confirmed','2016-12-23 17:44:08','2013-02-10 06:10:56'),
+('139','96','5','99999.99','requested','2013-04-27 15:18:46','2018-10-13 19:24:39'),
+('140','13','4','3.34','requested','2019-05-03 23:57:39','2011-08-02 19:12:52'),
+('141','5','9','99999.99','requested','2018-01-30 00:30:46','2017-02-08 12:54:29'),
+('142','44','9','99999.99','confirmed','2019-11-11 12:21:55','2016-12-26 14:37:17'),
+('143','41','4','156.70','rejected','2018-02-24 15:48:44','2012-04-05 21:45:27'),
+('144','49','9','34776.44','rejected','2011-05-19 01:00:11','2015-07-23 19:33:28'),
+('145','64','5','0.48','rejected','2018-09-06 10:39:35','2013-03-31 18:07:49'),
+('146','46','3','99999.99','rejected','2013-05-20 10:44:37','2013-03-08 04:34:07'),
+('147','59','6','99999.99','confirmed','2011-01-12 21:01:21','2012-10-30 22:39:09'),
+('148','56','3','541.61','requested','2019-02-06 15:37:39','2020-05-11 23:13:30'),
+('149','53','2','11134.08','requested','2011-07-28 16:41:00','2014-12-12 23:19:56'),
+('150','75','6','3566.85','requested','2018-01-11 08:41:45','2011-06-06 07:39:30'),
+('151','76','5','99999.99','requested','2015-04-24 18:21:51','2020-06-22 02:27:56'),
+('152','30','7','90.90','rejected','2020-02-19 12:20:54','2011-09-03 18:12:38'),
+('153','56','9','23214.66','requested','2020-02-25 04:52:14','2011-05-21 08:47:44'),
+('154','76','6','99999.99','requested','2016-11-19 03:51:24','2020-02-02 03:19:02'),
+('155','99','4','99999.99','requested','2013-12-02 12:26:34','2019-11-08 11:54:54'),
+('156','43','1','99999.99','requested','2013-01-20 09:32:28','2011-03-09 15:38:06'),
+('157','81','4','1.60','requested','2019-12-31 14:50:26','2013-08-03 18:12:31'),
+('158','59','9','99999.99','rejected','2017-05-01 19:19:01','2012-05-29 14:31:18'),
+('159','75','2','4.15','rejected','2014-10-05 08:20:11','2018-03-08 16:05:52'),
+('160','15','7','1126.21','requested','2015-01-03 07:44:19','2014-04-29 22:20:07'),
+('161','98','8','99999.99','rejected','2016-07-24 22:52:51','2020-05-11 13:31:34'),
+('162','29','6','693.37','confirmed','2018-09-21 23:04:55','2019-09-25 19:24:48'),
+('163','12','7','1720.35','confirmed','2014-12-01 06:06:48','2020-06-18 03:03:28'),
+('164','55','4','99999.99','rejected','2013-04-22 20:52:41','2020-01-20 06:25:57'),
+('165','7','4','7823.39','requested','2020-07-21 20:00:37','2014-07-27 08:00:42'),
+('166','82','5','47224.65','requested','2012-02-21 23:38:00','2012-11-08 20:20:38'),
+('167','54','8','99999.99','requested','2015-01-17 05:24:13','2016-10-02 13:20:20'),
+('168','54','4','378.63','confirmed','2019-03-26 23:13:02','2020-05-14 09:57:34'),
+('169','19','7','23740.88','requested','2018-08-27 21:42:24','2017-12-26 17:53:31'),
+('170','7','1','39260.53','rejected','2012-04-10 18:21:25','2013-04-04 08:15:22'),
+('171','63','9','485.40','requested','2016-06-10 01:50:09','2018-01-13 23:33:49'),
+('172','1','6','5748.82','requested','2019-02-11 09:13:49','2013-09-07 06:37:43'),
+('173','85','3','15968.30','confirmed','2012-11-30 20:43:42','2015-11-30 20:03:26'),
+('174','7','9','382.27','requested','2018-07-15 04:02:29','2020-05-20 18:30:48'),
+('175','28','5','99999.99','requested','2012-02-08 10:52:34','2016-12-21 10:07:30'),
+('176','18','3','99999.99','confirmed','2013-05-06 02:48:33','2019-08-27 07:00:02'),
+('177','26','6','99999.99','rejected','2012-08-12 03:22:54','2017-10-31 07:55:14'),
+('178','54','7','99999.99','rejected','2020-07-24 11:12:11','2013-03-03 10:31:04'),
+('179','46','9','191.24','requested','2011-07-27 08:34:47','2014-08-23 03:25:53'),
+('180','80','7','99999.99','confirmed','2018-12-15 02:05:36','2018-01-02 16:34:32'),
+('181','38','6','96.25','requested','2020-10-25 15:18:30','2015-03-29 17:06:49'),
+('182','8','5','99999.99','rejected','2015-01-03 11:25:35','2020-09-13 01:20:10'),
+('183','26','3','4.39','confirmed','2014-02-05 17:29:06','2017-01-22 20:21:51'),
+('184','37','3','359.76','requested','2013-12-12 06:01:33','2020-03-12 06:33:43'),
+('185','79','7','6612.92','rejected','2017-02-18 12:25:21','2011-02-10 06:45:24'),
+('186','71','7','1091.86','rejected','2015-05-08 06:19:30','2012-04-22 23:08:06'),
+('187','4','2','154.49','rejected','2020-09-16 03:55:30','2016-05-25 05:09:23'),
+('188','82','3','99999.99','rejected','2016-10-13 23:56:02','2013-07-25 01:20:35'),
+('189','60','8','0.00','confirmed','2018-09-21 01:47:13','2013-03-22 09:12:13'),
+('190','75','5','0.00','requested','2012-09-18 21:22:40','2012-08-08 11:13:33'),
+('191','92','7','0.00','requested','2020-02-29 15:20:23','2013-06-22 02:39:30'),
+('192','56','2','34.90','rejected','2014-02-16 10:25:31','2018-05-10 10:23:34'),
+('193','90','7','99999.99','rejected','2020-04-20 20:59:14','2013-04-30 22:22:21'),
+('194','46','8','0.00','confirmed','2015-12-24 18:31:51','2019-03-02 15:02:29'),
+('195','39','9','99999.99','confirmed','2011-07-17 13:05:58','2017-07-07 20:24:57'),
+('196','66','9','354.08','confirmed','2014-12-25 10:07:55','2012-04-09 05:42:09'),
+('197','20','7','166.78','confirmed','2019-11-03 02:00:04','2016-08-20 16:25:23'),
+('198','92','3','99999.99','requested','2020-06-17 17:27:26','2018-03-10 08:53:47'),
+('199','98','5','48.50','confirmed','2020-11-29 13:21:05','2011-06-25 01:42:46'),
+('200','57','9','9.00','requested','2014-10-06 02:48:24','2016-07-25 16:31:38'); 
 
 SELECT * FROM orders LIMIT 10;
 UPDATE orders SET user_id = FLOOR(1 + RAND() * 100);
@@ -687,6 +711,7 @@ DROP TABLE IF EXISTS `payments`;
 CREATE TABLE `payments` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор строки',
   `order_id` int(10) unsigned NOT NULL COMMENT 'Ссылка на заявление на предоставление услуги',
+  `price` decimal(7,2) DEFAULT NULL COMMENT 'Стоимость',
   `payment_status` enum('in progress','confirmed','rejected') COLLATE utf8_unicode_ci NOT NULL COMMENT 'Статус платежа',
   `created_at` datetime DEFAULT current_timestamp() COMMENT 'Время создания строки',
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Время обновления строки',
@@ -695,26 +720,107 @@ CREATE TABLE `payments` (
   CONSTRAINT `payments_order_id_fk` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Оплата услуг';
 
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (1, 1, 'confirmed', '2011-04-19 04:05:39', '2011-12-10 18:30:53');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (2, 2, 'in progress', '2017-08-18 12:23:43', '2017-07-23 19:59:34');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (3, 3, 'in progress', '2015-07-25 20:00:46', '2019-07-12 03:31:52');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (4, 4, 'in progress', '2015-03-07 21:03:06', '2016-12-07 11:33:21');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (5, 5, 'in progress', '2019-02-19 14:38:02', '2015-02-18 21:11:53');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (6, 6, 'in progress', '2011-02-08 00:29:40', '2011-02-08 10:39:26');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (7, 7, 'in progress', '2014-02-01 03:56:10', '2020-01-12 06:00:24');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (8, 8, 'confirmed', '2014-01-23 17:12:15', '2015-09-12 13:37:21');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (9, 9, 'confirmed', '2012-12-11 16:50:08', '2015-08-27 00:07:54');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (10, 10, 'confirmed', '2016-09-20 18:07:35', '2016-04-26 22:59:00');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (11, 11, 'confirmed', '2015-04-23 15:10:32', '2017-12-10 02:49:11');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (12, 12, 'in progress', '2012-05-22 17:30:40', '2020-10-31 04:07:00');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (13, 13, 'confirmed', '2012-05-19 04:31:35', '2013-01-15 18:00:33');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (14, 14, 'confirmed', '2012-07-15 09:58:43', '2019-04-06 19:20:05');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (15, 15, 'rejected', '2020-11-09 22:08:48', '2019-10-19 01:56:25');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (16, 16, 'confirmed', '2020-01-11 15:06:03', '2013-06-14 19:16:34');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (17, 17, 'in progress', '2011-07-05 23:23:19', '2015-12-12 15:36:10');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (18, 18, 'in progress', '2016-03-11 02:49:30', '2011-09-16 13:24:40');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (19, 19, 'in progress', '2016-12-30 16:38:14', '2015-01-19 13:59:16');
-INSERT INTO `payments` (`id`, `order_id`, `payment_status`, `created_at`, `updated_at`) VALUES (20, 20, 'confirmed', '2019-06-07 21:37:56', '2019-09-24 22:42:31');
+INSERT INTO `payments` VALUES ('1','115','575.61','in progress','2019-11-04 11:02:09','2018-06-30 04:54:33'),
+('2','13','6.06','rejected','2016-04-03 09:54:10','2020-10-12 00:29:26'),
+('3','98','99999.99','confirmed','2013-08-11 20:25:39','2018-12-02 11:57:08'),
+('4','99','606.77','in progress','2015-12-20 00:01:50','2014-02-25 04:33:22'),
+('5','45','99999.99','in progress','2012-07-17 22:05:35','2014-04-08 19:27:26'),
+('6','87','132.00','in progress','2012-05-13 02:09:10','2017-06-01 13:21:52'),
+('7','179','99999.99','rejected','2016-02-06 09:51:52','2013-06-28 03:51:23'),
+('8','64','20140.61','confirmed','2018-08-22 08:22:40','2013-03-21 01:39:31'),
+('9','126','0.00','in progress','2018-09-09 04:54:22','2012-01-25 00:10:35'),
+('10','81','7043.12','in progress','2015-09-09 00:32:25','2010-12-27 13:03:35'),
+('11','42','6.94','rejected','2013-01-06 02:32:39','2018-10-30 06:02:10'),
+('12','27','1785.40','in progress','2017-02-06 23:37:31','2016-03-19 09:38:11'),
+('13','38','499.92','rejected','2017-02-12 17:45:24','2015-06-20 22:15:57'),
+('14','134','99999.99','rejected','2016-05-16 01:28:56','2015-12-20 23:39:07'),
+('15','82','99999.99','confirmed','2015-12-24 10:21:18','2011-02-05 23:47:09'),
+('16','113','10075.58','in progress','2018-01-28 15:57:31','2020-06-29 00:02:42'),
+('17','90','5592.60','confirmed','2015-01-03 07:39:49','2012-12-10 21:30:42'),
+('18','149','0.26','rejected','2020-10-31 17:15:08','2020-02-16 22:19:11'),
+('19','118','70066.50','confirmed','2020-06-26 08:10:27','2011-01-13 04:18:28'),
+('20','68','99999.99','rejected','2017-05-04 23:24:38','2013-10-06 21:58:43'),
+('21','62','3694.73','in progress','2016-02-17 05:59:14','2016-02-04 06:37:45'),
+('22','199','1145.21','rejected','2020-10-06 00:49:44','2013-04-13 14:22:34'),
+('23','107','0.00','in progress','2016-07-16 09:54:46','2011-04-20 15:34:29'),
+('24','194','7.82','confirmed','2012-07-27 05:00:42','2016-10-30 10:46:26'),
+('25','185','32468.26','confirmed','2017-05-16 05:44:54','2017-12-19 11:59:00'),
+('26','145','0.00','confirmed','2018-11-10 18:28:11','2019-09-02 09:09:53'),
+('27','140','29863.74','rejected','2011-02-26 13:35:35','2018-01-19 03:14:40'),
+('28','47','1878.76','confirmed','2018-09-15 00:26:26','2016-11-11 00:18:49'),
+('29','102','26718.66','confirmed','2017-09-30 08:17:45','2012-07-24 01:19:31'),
+('30','23','3.00','in progress','2014-01-14 13:07:01','2013-11-13 09:41:55'),
+('31','143','99999.99','in progress','2012-09-25 03:20:01','2019-06-28 12:45:21'),
+('32','31','99999.99','in progress','2012-06-26 04:49:10','2018-10-07 23:06:02'),
+('33','172','38.29','in progress','2012-10-03 06:01:33','2012-05-16 15:41:37'),
+('34','160','5.66','in progress','2012-05-08 08:38:38','2019-06-21 02:41:13'),
+('35','85','99999.99','rejected','2015-05-05 06:44:26','2012-04-19 19:57:54'),
+('36','173','431.18','confirmed','2019-11-14 20:07:36','2020-09-30 08:30:35'),
+('37','120','1070.38','confirmed','2017-05-30 23:19:19','2013-07-06 07:47:46'),
+('38','190','99999.99','rejected','2017-11-13 18:36:10','2018-11-20 14:43:40'),
+('39','195','3.02','rejected','2014-02-03 10:11:04','2012-05-18 01:32:28'),
+('40','48','99999.99','rejected','2013-06-22 22:48:30','2020-07-28 22:17:38'),
+('41','139','0.00','in progress','2015-05-26 22:47:44','2016-03-04 21:27:36'),
+('42','151','99999.99','confirmed','2015-03-18 16:14:14','2020-06-09 17:55:40'),
+('43','32','95132.47','confirmed','2015-05-21 23:44:42','2013-06-04 07:52:22'),
+('44','103','23009.96','in progress','2015-03-31 05:42:49','2014-06-09 20:23:24'),
+('45','10','99999.99','rejected','2017-05-12 03:20:14','2012-05-13 06:35:46'),
+('46','198','99999.99','confirmed','2014-10-26 12:52:34','2014-03-20 04:34:18'),
+('47','18','44418.09','confirmed','2017-07-17 00:16:13','2018-12-16 18:14:08'),
+('48','3','99999.99','in progress','2019-08-15 11:07:08','2012-04-22 02:03:45'),
+('49','122','2875.08','in progress','2014-09-20 07:46:43','2018-05-06 01:38:42'),
+('50','182','99999.99','in progress','2018-11-29 14:54:43','2015-07-25 11:04:37'),
+('51','57','99999.99','confirmed','2013-09-09 12:40:38','2015-06-21 23:04:40'),
+('52','138','99999.99','rejected','2020-10-31 15:27:53','2019-08-01 10:56:45'),
+('53','15','99999.99','rejected','2015-03-08 06:35:13','2020-01-07 14:56:51'),
+('54','92','562.50','rejected','2014-08-16 15:48:44','2018-11-17 15:44:06'),
+('55','196','86.79','in progress','2013-08-27 00:56:32','2015-07-18 19:29:30'),
+('56','66','99999.99','in progress','2013-07-14 18:07:52','2018-11-22 21:57:17'),
+('57','167','8205.40','confirmed','2019-01-05 23:43:19','2015-08-19 18:36:59'),
+('58','75','13.00','confirmed','2013-06-12 03:46:36','2018-03-18 13:15:40'),
+('59','6','47619.44','rejected','2015-07-07 13:56:26','2019-11-26 22:16:13'),
+('60','163','72.95','confirmed','2016-12-25 01:16:05','2018-01-10 07:32:00'),
+('61','188','99999.99','confirmed','2014-08-17 17:07:13','2012-04-06 20:19:28'),
+('62','130','4144.84','in progress','2020-03-03 06:02:46','2017-07-17 03:33:14'),
+('63','91','73823.32','rejected','2011-01-10 19:23:29','2012-01-28 22:05:47'),
+('64','58','0.00','confirmed','2013-06-01 19:56:26','2011-10-01 06:04:11'),
+('65','169','2.00','rejected','2018-07-17 20:47:09','2020-02-13 20:41:53'),
+('66','135','99999.99','rejected','2012-02-17 13:37:36','2013-02-12 03:20:21'),
+('67','41','33.31','confirmed','2015-03-13 22:21:51','2014-12-23 04:54:43'),
+('68','93','11.97','rejected','2012-01-06 03:51:34','2012-08-26 21:14:05'),
+('69','116','99999.99','in progress','2014-02-12 14:20:33','2011-09-21 01:51:14'),
+('70','181','8871.00','confirmed','2012-09-10 23:52:25','2016-10-04 17:30:39'),
+('71','112','99999.99','in progress','2014-06-22 14:31:41','2020-11-12 10:07:59'),
+('72','150','173.95','in progress','2015-12-18 15:06:59','2018-11-12 04:19:44'),
+('73','70','0.00','rejected','2019-07-25 04:56:59','2019-12-07 08:36:33'),
+('74','164','2031.21','confirmed','2015-11-24 20:36:41','2019-12-14 22:12:16'),
+('75','1','99999.99','rejected','2015-11-05 19:29:32','2013-05-27 05:39:18'),
+('76','137','99999.99','rejected','2014-06-10 13:38:53','2020-02-24 10:01:05'),
+('77','53','50.80','confirmed','2014-04-06 13:09:16','2014-10-26 15:13:17'),
+('78','111','3611.67','in progress','2012-08-04 07:33:49','2012-11-25 16:49:52'),
+('79','171','99999.99','confirmed','2012-04-29 12:59:39','2017-12-09 11:15:45'),
+('80','29','10.38','rejected','2020-07-12 09:23:07','2019-08-02 06:48:53'),
+('81','83','14857.00','in progress','2014-04-20 17:39:22','2015-10-11 01:34:43'),
+('82','43','99999.99','confirmed','2018-04-12 22:11:25','2016-07-14 12:52:51'),
+('83','84','43537.00','rejected','2018-02-08 00:53:25','2011-09-29 23:42:03'),
+('84','17','0.70','in progress','2017-04-09 17:11:29','2015-04-21 20:54:51'),
+('85','80','62.00','rejected','2018-01-14 04:24:45','2013-05-14 19:31:23'),
+('86','52','32.97','rejected','2015-06-12 16:19:31','2011-09-14 10:51:48'),
+('87','155','99999.99','confirmed','2011-01-26 05:15:06','2016-12-01 14:18:32'),
+('88','121','99999.99','rejected','2019-05-28 18:44:51','2016-06-25 23:31:08'),
+('89','16','0.00','confirmed','2013-04-20 20:56:04','2014-04-03 15:12:26'),
+('90','86','0.57','in progress','2015-05-17 01:59:49','2019-12-27 09:07:12'),
+('91','21','99999.99','in progress','2015-02-08 07:26:04','2017-01-04 00:55:52'),
+('92','131','99999.99','rejected','2012-11-23 13:40:39','2020-10-22 19:47:46'),
+('93','158','99999.99','in progress','2014-03-05 23:51:58','2016-10-01 10:44:12'),
+('94','123','99999.99','confirmed','2018-04-03 13:55:52','2018-03-09 19:10:12'),
+('95','184','0.00','confirmed','2016-04-30 16:15:43','2013-10-10 13:45:53'),
+('96','161','99999.99','rejected','2020-10-09 11:09:44','2011-08-23 22:04:39'),
+('97','148','99999.99','in progress','2018-06-07 23:15:26','2019-11-27 03:45:04'),
+('98','100','2753.61','in progress','2013-06-03 00:00:34','2020-11-06 19:44:01'),
+('99','101','41961.75','confirmed','2020-11-27 17:40:18','2020-12-07 20:42:54'),
+('100','5','4.15','rejected','2018-11-09 08:15:52','2020-01-30 03:38:01'); 
+
 
 
 DESC payments;
@@ -722,6 +828,7 @@ SELECT * FROM payments;
 SELECT * FROM orders ORDER BY id DESC;
 UPDATE payments SET order_id = FLOOR(1 + RAND() * 200);
 UPDATE payments SET updated_at = NOW() WHERE updated_at < created_at;
+UPDATE payments SET price = 100 WHERE price = 0;
 
 #
 # TABLE STRUCTURE FOR: profiles
@@ -751,7 +858,7 @@ INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthda
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (2, 'Fred', 'Emmerich', 'Женский', '1987-01-13', '21184 Yvette Corner\nKianashire, MT 27056-4016', '4027 Dicki Estate Suite 179\nEast Silas, MI 36476-1747', 'Казахстан', '4570285418', '825211708695', '86 xq', '2015-05-14 09:03:04', '2015-11-19 18:34:00');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (3, 'Sylvester', 'Anderson', 'Мужской', '1959-02-03', '521 Reichel Stream\nBraunville, MD 22364', '767 Reyna Road\nWhitemouth, ID 59205', 'Белоруссия', '4750163653', '181581720374', '38 wd', '2017-01-09 07:23:48', '2011-04-17 00:41:56');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (4, 'Rosella', 'Klein', 'Мужской', '1957-03-13', '641 Hagenes Drive\nLake Felix, CA 51959', '69840 Rosie Path\nLeuschkeville, MA 14115', 'иное', '4713387463', '337088223956', '33 lg', '2016-02-13 13:45:16', '2015-09-16 14:39:32');
-INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (5, 'Selmer', 'Haley', 'Мужской', '1999-04-203', '23989 Schneider Loop Apt. 599\nPort Kaleb, VA 41826', '773 Kamren Greens\nWest Deltastad, OR 53791-4865', 'Белоруссия', '4601425253', '725081219808', '91 wl', '2019-12-03 02:42:06', '2012-01-18 00:28:01');
+INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (5, 'Selmer', 'Haley', 'Мужской', '1999-04-20', '23989 Schneider Loop Apt. 599\nPort Kaleb, VA 41826', '773 Kamren Greens\nWest Deltastad, OR 53791-4865', 'Белоруссия', '4601425253', '725081219808', '91 wl', '2019-12-03 02:42:06', '2012-01-18 00:28:01');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (6, 'Jerrell', 'Mertz', 'Женский', '1971-05-05', '223 Connelly Fork\nNorth Wilburnview, ND 38634', '1038 Gleason Isle Suite 393\nKrajcikburgh, CT 51854', 'иное', '4394681793', '247979101967', '', '2013-02-22 12:28:23', '2011-08-05 05:56:30');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (7, 'Jayda', 'Brekke', 'Женский', '1972-05-06', '9394 Julianne Way\nNew Emmanuelfort, OH 09183', '06027 Williamson Court Suite 738\nChristinastad, HI 54069-8873', 'Белоруссия', '4595220507', '288597962204', '81 ko', '2020-09-28 19:26:54', '2016-01-29 20:02:08');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (8, 'Kenna', 'Windler', 'Мужской', '1975-04-07', '6833 Idella Loaf Apt. 955\nLake Gardner, VT 74598-1533', '8488 Lue Greens Suite 798\nDejonside, AZ 53607-2364', 'Казахстан', '4420406398', '151607671389', '61 cg', '2019-09-09 11:41:12', '2019-08-13 22:42:14');
@@ -787,7 +894,8 @@ INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthda
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (38, 'Aida', 'Block', 'Женский', '1970-01-15', '433 Metz Station Apt. 103\nSkilesfort, WV 82065-3820', '1019 Floyd Curve\nSouth Palmaside, ME 00909-8723', 'Российская Федерация', '4830358325', '135657901833', '29 af', '2013-06-25 14:57:45', '2013-02-01 14:12:38');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (39, 'Irma', 'Brown', 'Женский', '1980-05-09', '785 Lukas Canyon Apt. 993\nEast Emiehaven, ND 02416-0034', '04829 Althea Way Apt. 162\nMrazborough, MS 59619', 'Армения', '4553267335', '290680837678', '46 xk', '2019-06-17 23:03:31', '2018-12-04 02:28:34');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (40, 'Charley', 'Kassulke', 'Женский', '1990-07-09', '568 Fleta Dale\nEast Maudfort, ID 11851', '64929 Jevon Knolls\nNienowton, NE 07144-1544', 'Белоруссия', '4816821567', '363611161522', '', '2019-03-29 16:32:35', '2012-06-13 02:27:44');
-INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (41, 'Joel', 'Hickle', 'Женский', '1950-07-12-25', '597 Hayes Road Suite 869\nNorth Natasha, DE 92332', '42614 Christa Station Suite 610\nHanetown, ND 46628-0652', 'иное', '4358482250', '409421085268', '', '2018-03-04 01:33:17', '2016-09-27 17:18:20');
+INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (41, 'Joel', 'Hickle', 'Женский', '1950-07-25', '597 Hayes Road Suite 869\nNorth Natasha, DE 92332', '42614 Christa Station Suite 610\nHanetown, ND 46628-0652', 'иное', '4358482250', '409421085268', '', '2018-03-04 01:33:17', '2016-09-27 17:18:20');
+INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (42, 'Joel', 'Hickle', 'Женский', '1950-07-25', '597 Hayes Road Suite 869\nNorth Natasha, DE 92332', '42614 Christa Station Suite 610\nHanetown, ND 46628-0652', 'иное', '4358982250', '400421085268', '', '2018-03-04 01:33:17', '2016-09-27 17:18:20');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (43, 'Kennedy', 'Morissette', 'Мужской', '1940-12-25', '390 Annamae Greens Suite 654\nDomenicastad, MD 64179', '034 Deon Glen Suite 615\nSouth Clement, CT 32763', 'Белоруссия', '4714749548', '808881432643', '04 qc', '2011-08-30 00:59:16', '2011-08-01 14:15:40');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (44, 'Emmanuel', 'Lemke', 'Женский', '1930-12-28', '973 Shawna Garden Suite 438\nLake Myrontown, MA 37991-0944', '92648 Omer Fall\nPurdystad, IN 09519', 'иное', '4960605661', '222654970162', '97 qj', '2013-07-10 15:58:13', '2014-07-29 09:03:30');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (45, 'Willow', 'Rice', 'Женский', '1935-12-10', '92025 Fredy Well Apt. 201\nKreigerfurt, IL 69862-6660', '2579 Bashirian Forks\nDachville, AR 36831-5937', 'иное', '4214219599', '606162847821', '90 bv', '2014-02-22 19:04:19', '2019-04-01 23:57:37');
@@ -845,6 +953,7 @@ INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthda
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (97, 'Jeremie', 'Marquardt', 'Женский', '1975-05-23', '338 Thiel Roads\nWest Zetta, NY 04684-6155', '06065 Gutmann Port\nTheamouth, NH 24176-5308', 'иное', '4803702440', '448830209617', '54 uk', '2016-12-05 00:51:09', '2018-07-12 08:40:06');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (98, 'Rosario', 'Roberts', 'Мужской', '1990-05-03', '91976 Lebsack Trace Apt. 072\nThompsonmouth, AR 33926', '962 Hilll Stream\nNorth Emerson, ID 65682', 'иное', '4660336380', '729618382021', '', '2014-04-27 08:12:03', '2019-08-24 15:47:59');
 INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (99, 'Kaycee', 'Harris', 'Мужской', '1950-04-07', '430 Jeffrey Motorway Suite 994\nEast Keiramouth, SC 49575-2956', '11152 Cleora Turnpike\nNew Jennings, RI 82591', 'Белоруссия', '4187329976', '253615565030', '04 hx', '2017-07-13 12:32:00', '2012-04-20 05:53:49');
+INSERT INTO `profiles` (`user_id`, `first_name`, `last_name`, `gender`, `birthday`, `address_of_registration`, `address_actual`, `citizenship`, `passport_number`, `tax_number`, `car_number`, `created_at`, `updated_at`) VALUES (100, 'Kaycee', 'Harris', 'Мужской', '1950-04-07', '430 Jeffrey Motorway Suite 994\nEast Keiramouth, SC 49575-2956', '11152 Cleora Turnpike\nNew Jennings, RI 82591', 'Белоруссия', '4187325976', '250615565030', '04 zx', '2017-07-13 12:32:00', '2012-04-20 05:53:49');
 
 SELECT * FROM profiles;
 
